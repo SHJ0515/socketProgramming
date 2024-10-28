@@ -36,7 +36,6 @@ public class SMTPSender {
         System.out.println("STARTTLS 명령을 전송합니다.");
         outToServer.print("STARTTLS" + "\r\n");
         outToServer.flush();
-        lineFromServer = "";
         lineFromServer = inFromServer.readLine();
         System.out.println("응답:" + lineFromServer);
         if(!lineFromServer.startsWith("220")) {
