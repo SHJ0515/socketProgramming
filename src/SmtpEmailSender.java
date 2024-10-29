@@ -25,11 +25,19 @@ public class SmtpEmailSender {
             printResponse(reader); // 초기 서버 응답
 
             // 3. EHLO 메시지 전송
+            System.out.println("EHLO " + SMTP_SERVER);
             writer.println("EHLO " + SMTP_SERVER);
             printResponse(reader); // EHLO 응답 읽기
 
             // 4. AUTH LOGIN 명령 전송 및 인증
             writer.println("AUTH LOGIN");
+            System.out.println("AUTH LOGIN");
+            printResponse(reader);
+
+            // 사용자명과 비밀번호를 Base64로 인코딩하여 전송
+            writer.println(encodeBase64(username));
+            printResponse(reader);
+            writer.println(encodeBase64(password));
             printResponse(reader);
 
             // 5. MAIL FROM 명령 전송
@@ -38,13 +46,23 @@ public class SmtpEmailSender {
 
             // 6. RCPT TO 명령 전송
             writer.println("RCPT TO:<" + toEmail + ">");
+            System.out.println("RCPT TO:<" + toEmail + ">");
             printResponse(reader);
 
             // 7. DATA 명령 전송
             writer.println("DATA");
+            System.out.println("DATA");
             printResponse(reader);
 
             // 8. 이메일 헤더와 본문 전송 (CRLF로 구분)
+            System.out.println("From: " + username);
+            System.out.println("To: " + toEmail);
+            System.out.println("Subject: " + subject);
+            System.out.println("Content-Type: text/plain; charset=utf-8");
+            System.out.println();
+            System.out.println(body);
+            System.out.println(".");
+
             writer.println("From: " + username);
             writer.println("To: " + toEmail);
             writer.println("Subject: " + subject);
@@ -80,6 +98,11 @@ public class SmtpEmailSender {
                 break; // 중요한 응답 코드 도달 시 종료
             }
         }
+    }
+
+    // 문자열을 Base64로 인코딩하는 메서드
+    private static String encodeBase64(String value) {
+        return java.util.Base64.getEncoder().encodeToString(value.getBytes());
     }
 }
 
