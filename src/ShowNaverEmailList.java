@@ -1,3 +1,4 @@
+/*
 import java.io.*;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -109,4 +110,141 @@ public class ShowNaverEmailList {
         return b;   // 수정 필요
     }
 }
+ */
 
+import java.io.*;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
+public class ShowNaverEmailList {
+    private static final String HOST = "imap.naver.com";  // 네이버 IMAP 서버
+    private static final int PORT = 993;  // SSL 포트
+    private String id;                    // 네이버 아이디
+    private String password;              // 네이버 비밀번호
+    private String flag;
+    private String boxType;
+    private String[] emailIds;            // 메일 ID 리스트를 저장할 필드
+    private SSLSocket socket;             // 소켓 필드로 선언
+    private BufferedReader reader;        // BufferedReader 필드로 선언
+    private BufferedWriter writer;        // BufferedWriter 필드로 선언
+
+    public ShowNaverEmailList(String id, String password, String boxType, String flag) {
+        this.id = id;
+        this.password = password;
+        this.boxType = boxType;
+        this.flag = flag;
+        this.returnList();
+    }
+
+    // returnList 메서드에서 ShowNaverEmailList 객체를 반환하도록 변경
+    public void returnList() {
+        try {
+            // 1. SSL 소켓 생성 및 서버 연결
+            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            this.socket = (SSLSocket) factory.createSocket(HOST, PORT);
+
+            // 2. 서버와의 입출력 스트림 설정
+            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+            // 3. 서버 초기 응답 확인
+            System.out.println("S: " + reader.readLine());
+
+            // 4. 로그인 요청
+            writer.write("A001 LOGIN " + id + " " + password + "\r\n");
+            writer.flush();
+            System.out.println("C: A001 LOGIN " + id + " ********");
+
+            // 5. 로그인 응답 확인
+            System.out.println("S: " + reader.readLine());
+
+            // 6. 메일함 선택
+            writer.write("A002 SELECT " + boxType + "\r\n");
+            writer.flush();
+            System.out.println("C: A002 SELECT " + boxType);
+
+            // 7. 메일함 응답 확인
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println("S line: " + line);
+                if (line.startsWith("A002 OK")) break;
+            }
+
+            // 8. 메일 검색
+            writer.write("A003 SEARCH " + flag + "\r\n");
+            writer.flush();
+            System.out.println("C: A003 SEARCH " + flag);
+
+            // 9. SEARCH 명령 응답 읽기 및 메일 ID 추출
+            StringBuilder searchResultBuilder = new StringBuilder();
+            System.out.println("----- SEARCH 명령 응답 시작 -----");
+            while ((line = reader.readLine()) != null) {
+                System.out.println("S searchLine: " + line);
+                if (line.startsWith("* SEARCH")) {
+                    searchResultBuilder.append(line).append(" ");
+                }
+                if (line.startsWith("A003 OK")) break;
+            }
+            System.out.println("----- SEARCH 명령 응답 끝 -----");
+
+            // 검색 결과를 배열로 저장
+            String searchResult = searchResultBuilder.toString().trim();
+            String[] parts = searchResult.split(" ");
+            int length = parts.length;
+            int startIndex = Math.max(0, length - 100);
+            int size = length - startIndex;
+
+            // emailIds 필드에 최신 100개의 메일 ID를 저장
+            emailIds = new String[size];
+            for (int i = 0; i < size; i++) {
+                emailIds[i] = parts[length - 1 - i];
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 소켓을 종료하는 메서드 (추가)
+    public void closeConnection() {
+        try {
+            if (reader != null) reader.close();
+            if (writer != null) writer.close();
+            if (socket != null) socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public String getBoxType() {
+        return boxType;
+    }
+
+    public String[] getEmailIds() {
+        return emailIds;
+    }
+
+    public SSLSocket getSocket() {
+        return socket;
+    }
+
+    public BufferedReader getReader() {
+        return reader;
+    }
+
+    public BufferedWriter getWriter() {
+        return writer;
+    }
+}
