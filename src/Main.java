@@ -11,7 +11,7 @@ public class Main {
         }
 
         String[] a = showNaverEmailList.getEmailIds();
-    
+
 
     }
 }
