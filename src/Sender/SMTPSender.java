@@ -1,4 +1,4 @@
-// SMTPServer.java
+package Sender;// SMTPServer.java
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.net.*;
@@ -132,7 +132,6 @@ public class SMTPSender {
                     + "\r\n"
                     + "Best regards,\r\n"
                     + "Alice\r\n";
-
 
             // RFC 5322 형식에 맞게 헤더와 본문을 결합
             String content = "From: " + from + "\r\n"
