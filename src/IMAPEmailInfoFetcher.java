@@ -1,6 +1,7 @@
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
+import java.lang.reflect.Parameter;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.regex.Matcher;
@@ -26,19 +27,19 @@ public class IMAPEmailInfoFetcher {
         특정 메일의 발신자 이메일, 수신 날짜, 메일 제목, 메일 내용 가져오기
      */
     public EmailInfo fetchEmailInfo() {
-        EmailInfo emailInfo = null;
+        EmailInfo emailInfo = new EmailInfo();
         try {
             SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
             try (SSLSocket socket = (SSLSocket) factory.createSocket(server, port);
                  PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "euc-kr"))) {
 
-                 /*
+                /*
                     서버 초기 응답
-                  */
+                 */
                 System.out.println("S: " + reader.readLine());
 
-                 /*
+                /*
                     로그인 명령어 전송 및 응답 확인
                   */
                 writer.println("a1 LOGIN " + email + " " + password);
@@ -61,35 +62,7 @@ public class IMAPEmailInfoFetcher {
                 }
 
                 /*
-                    특정 이메일(emailID)의 헤더에서 발신자 이메일, 수신 날짜, 메일 제목 정보를 가져오기
-                 */
-                writer.println("a3 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
-                System.out.println("C: a3 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
-                StringBuilder headerInfo = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("S: " + line);
-                    headerInfo.append(line).append("\n");
-                    if (line.contains("a3 OK")) {
-                        break;
-                    }
-                }
-                System.out.println("==============================");
-                System.out.println("메일 헤더 정보(디코딩 전):\n" + headerInfo);
-
-                /*
-                    디코딩 후 출력
-
-                    ** 인코딩 가능 형식 **
-                    1. Base64 인코딩
-                    2. Quoted-Printable 인코딩
-                    3. 일반 텍스트
-                 */
-                String decodedHeader = decodeMimeEncodedText(headerInfo.toString());
-                System.out.println("메일 헤더 정보(디코딩 후):\n" + decodedHeader);
-                System.out.println("==============================\n");
-
-                /*
-                    이메일 본문 인코딩 형식 가져오기
+                    메일의 헤더 정보를 가져와 인코딩 형식 확인
                  */
                 writer.println("a4 FETCH " + emailID + " BODY[HEADER]");
                 System.out.println("C: a4 FETCH " + emailID + " BODY[HEADER]");
@@ -110,61 +83,88 @@ public class IMAPEmailInfoFetcher {
                 System.out.println("Content-Transfer-Encoding: " + encoding);
                 System.out.println("==============================\n");
 
+
+                // 이메일 헤더 가져오기
+                writer.println("a3 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
+                System.out.println("C: a3 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
+                StringBuilder headerResponse = new StringBuilder();
+                while((line = reader.readLine()) != null) {
+                    headerResponse.append(line).append("\n");
+                    if(line.contains("a3 OK")) {
+                        break;
+                    }
+                }
+                System.out.println("** 이메일 헤더(디코딩 전) ===========================================");
+                System.out.print(headerResponse);
+                System.out.println("** ==============================================================");
+
+                String decodedHeader = decodeMimeEncodedText(headerResponse.toString());
+                System.out.println("메일 헤더 정보(디코딩 후):\n" + decodedHeader);
+                System.out.println("==============================\n");
+
+                /*
+                    이메일 헤더에서 '발신자 이메일', '수신 및 발신 날짜', '메일 제목 정보' 가져오기
+                 */
+                writer.println("a4 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
+                System.out.println("C: a4 FETCH " + emailID + " (BODY[HEADER.FIELDS (FROM DATE SUBJECT)])");
+
+                String from = "", date = "", subject = "";
+                while((line = reader.readLine()) != null) {
+                    if (line.startsWith("FROM:")) {
+                        from = line.substring(5).trim();
+                    } else if (line.startsWith("DATE:")) {
+                        date = line.substring(5).trim();
+                    } else if (line.startsWith("SUBJECT:")) {
+                        subject = line.substring(8).trim();
+                    }
+                    if (line.contains("a4 OK")) break;
+                }
+                System.out.println("** 메일 헤더 정보(디코딩 전)============================================");
+                System.out.println("From: " + from);
+                System.out.println("Date: " + date);
+                System.out.println("Subject: " + subject);
+                System.out.println("========================================================");
+
+                System.out.println("** 메일 헤더 정보(디코딩 후)============================================");
+                System.out.println("From: " + decodeMimeEncodedText(from));
+                System.out.println("Date: " + decodeMimeEncodedText(date));
+                System.out.println("Subject: " + decodeMimeEncodedText(subject));
+                System.out.println("========================================================");
+
+                emailInfo.setFrom(decodeMimeEncodedText(from));
+                emailInfo.setDate(decodeMimeEncodedText(date));
+                emailInfo.setSubject(decodeMimeEncodedText(subject));
+
                 /*
                     이메일 본문 가져오기
                  */
-                writer.println("a5 FETCH " + emailID + " BODY[TEXT]");
-                System.out.println("C: a5 FETCH " + emailID + " BODY[TEXT]");
-
-                StringBuilder bodyContent = new StringBuilder();
+                writer.println("a4 FETCH " + emailID + " BODY[TEXT]");
+                System.out.println("C: a4 FETCH " + emailID + " BODY[TEXT]");
+                StringBuilder bodyResponse = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
                     // `* 1000 FETCH (BODY[TEXT] {...}`로 시작하는 줄은 건너뜀
                     if (line.startsWith("* " + emailID + " FETCH (BODY[TEXT]")) {
                         continue;
                     }
-                    bodyContent.append(line).append("\n");
-                    if (line.contains("a5 OK")) {
+                    if (line.contains(")")) {
                         break;
                     }
+                    bodyResponse.append(line).append("\n");
                 }
 
-                String charset = contentType.contains("charset=") ?
-                        contentType.substring(contentType.indexOf("charset=") + 8).replaceAll("[\";]", "").trim()
-                        : "UTF-8"; // 기본값을 UTF-8로 설정
+                String decodedBody = bodyResponse.toString();
+                if(encoding.equalsIgnoreCase("base64")) {
+                    decodedBody = decodeBase64(bodyResponse.toString(), Charset.forName(getCharset(contentType)));
+                }
+                emailInfo.setBody(decodedBody);
 
-                System.out.println(bodyContent);
+                System.out.println("========================================================");
+                System.out.println(emailInfo);
+                System.out.println("========================================================");
 
                 /*
-                    본문 디코딩 과정이 해결이 안됨.
+                    르그아웃
                  */
-                String decodedBody = "";
-                if ("base64".equalsIgnoreCase(encoding)) {
-
-                } else if ("quoted-printable".equalsIgnoreCase(encoding)) {
-
-
-                } else if ("7bit".equalsIgnoreCase(encoding) || "8bit".equalsIgnoreCase(encoding)) {
-
-
-                } else if ("binary".equalsIgnoreCase(encoding)) {
-
-
-                } else {
-
-                }
-
-
-                // 디코딩된 본문 출력
-                System.out.println("==============================");
-                System.out.println("메일 본문(디코딩 후):\n" + decodedBody);
-                System.out.println("==============================");
-
-                String subject = extractHeaderInfo(decodedHeader, "Subject");
-                String from = extractHeaderInfo(decodedHeader, "From");
-                String date = extractHeaderInfo(decodedHeader, "Date");
-                emailInfo = new EmailInfo(subject, from, date, decodedBody);
-
-                // 르그아웃
                 writer.println("a6 LOGOUT\r\n");
                 System.out.println("C: a6 LOGOUT");
 
@@ -175,6 +175,17 @@ public class IMAPEmailInfoFetcher {
         }
 
         return emailInfo;
+    }
+
+    private String extractHeaderInfo(String header, String fieldName) {
+        String regex = "(?m)^" + fieldName + "\\s*:\\s*(.*?)(?=(\\r?\\n[^\\s]|\\z))";
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(header);
+
+        if (matcher.find()) {
+            return matcher.group(1).replaceAll("\\s+", " ").trim(); // 여백은 한 칸으로 통일
+        }
+        return ""; // 필드를 찾지 못한 경우 빈 문자열 반환
     }
 
     private String decodeMimeEncodedText(String text) {
@@ -250,29 +261,30 @@ public class IMAPEmailInfoFetcher {
         return decoded.toString();
     }
 
-    // 헤더에서 특정 키워드의 값을 정확히 추출 (여러 줄 지원)
-    private String extractHeaderInfo(String header, String fieldName) {
-        // 정확한 필드 이름 앞에 시작 위치를 지정하여 DKIM 서명 등의 다른 블록에서 가져오지 않도록 함
-        String regex = "(?m)^" + fieldName + "\\s*:\\s*(.*?)(?=(\\r?\\n[^\\s]|\\z))";
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(header);
+    private String decodeBase64(String encoded, Charset charset) {
+        byte[] decodedBytes = Base64.getMimeDecoder().decode(encoded);
+        return new String(decodedBytes, charset);
+    }
 
+    private String getCharset(String contentType) {
+        Pattern charsetPattern = Pattern.compile("charset=([\\w-]+)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = charsetPattern.matcher(contentType);
         if (matcher.find()) {
-            return matcher.group(1).replaceAll("\\s+", " ").trim(); // 여백은 한 칸으로 통일
+            return matcher.group(1);
         }
-        return ""; // 필드를 찾지 못한 경우 빈 문자열 반환
+        return "UTF-8"; // 기본값
     }
 
     public static void main(String[] args) {
         // 네이버 IMAP 서버 테스트
-        String naverEmail = "본인 이메일";
-        String naverPassword = "본인 비밀번호";
+        String naverEmail = "audtn0099@naver.com";
+        String naverPassword = "msjw0706";
         String emailID = "1";
         String server = "imap.naver.com";
         int port = 993;
         String boxType = "INBOX";
 
-        for (int i = 1000; i >= 1000; i--) {
+        for (int i = 1000; i >= 990; i--) {
             IMAPEmailInfoFetcher naverEmailInfoFetcher = new IMAPEmailInfoFetcher(
                     naverEmail, naverPassword, Integer.toString(i),
                     server, port, boxType
