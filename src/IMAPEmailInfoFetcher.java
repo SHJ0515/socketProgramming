@@ -1,11 +1,10 @@
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 public class IMAPEmailInfoFetcher {
     String email, password, emailID, server, boxType;
@@ -266,8 +265,8 @@ public class IMAPEmailInfoFetcher {
 
     public static void main(String[] args) {
         // 네이버 IMAP 서버 테스트
-        String naverEmail = "audtn0099@naver.com";
-        String naverPassword = "msjw0706";
+        String naverEmail = "본인 이메일";
+        String naverPassword = "본인 비밀번호";
         String emailID = "1";
         String server = "imap.naver.com";
         int port = 993;

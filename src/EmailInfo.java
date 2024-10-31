@@ -4,10 +4,7 @@ public class EmailInfo {
     private String date;
     private String body;
 
-    public EmailInfo(
-            String subject, String from,
-            String date, String body
-    ) {
+    public EmailInfo(String subject, String from, String date, String body) {
         this.subject = subject;
         this.from = from;
         this.date = date;
@@ -29,6 +26,23 @@ public class EmailInfo {
 
     public String getBody() {
         return body;
+    }
+
+    // Setters
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     @Override

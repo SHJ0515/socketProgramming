@@ -1,3 +1,5 @@
+package client.naver;
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
@@ -45,17 +47,15 @@ public class IMAPLogin {
                 System.out.println("a1 LOGIN " + email + " " + password);
 
                 // 응답에서 "OK"를 찾으면 성공으로 판단
-                // 로그인 응답 확인
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("서버 응답: " + line);
-                    if (line.contains("a1 OK")) { // 로그인 완료 메시지 확인
-                        break;
-                    }
-                    if (line.contains("NO")) { // 로그인 실패 메시지 확인
-                        System.out.println("로그인 실패: 아이디 또는 비밀번호 오류");
-                        return false;
-                    }
+                String responseLine = reader.readLine();
+                System.out.println("서버 응답: " + responseLine);
+
+                if(responseLine.contains("OK")) {
+                    System.out.println("로그인 성공");
+                }
+                else if (responseLine.contains("NO") || responseLine.contains("BAD")) {
+                    System.out.println("로그인 실패");
+                    return false;
                 }
             }
         } catch (IOException e) {
@@ -66,17 +66,18 @@ public class IMAPLogin {
 
     public static void main(String[] args) {
         // 네이버 IMAP 서버 테스트
-//        String naverEmail = "본인의 이메일";
-//        String naverPassword = "본인의 비밀번호(2차 인증 활성화한 경우 앱 비밀번호를 알아야함)";
-//        IMAPLogin naverLogin = new IMAPLogin(naverEmail, naverPassword, "imap.naver.com", 993);
-//        naverLogin.login();
+        String naverEmail = "본인의 이메일";
+        String naverPassword = "본인의 비밀번호(2차 인증 활성화한 경우 앱 비밀번호를 알아야함)";
+        IMAPLogin naverLogin = new IMAPLogin(naverEmail, naverPassword, "imap.naver.com", 993);
+        naverLogin.login();
 
         // Gmail IMAP 서버 테스트
         /*
-            gmail은 2차 인증을 활성한 후에 무조건 앱 비밀번호로 접근해야 가능
+            gmail은 Google에서 접근 못하도록 막아놓은 듯 함.
+            네이버는 잘됨.
          */
-        String gmailEmail = "audtnwldnjs@gmail.com";
-        String gmailPassword = "mbfiafsahunskzyu";
+        String gmailEmail = "본인의 이메일";
+        String gmailPassword = "본인의 비밀번호(2차 인증 활성화한 경우 앱 비밀번호를 알아야함)";
         IMAPLogin gmailLogin = new IMAPLogin(gmailEmail, gmailPassword, "imap.gmail.com", 993);
         gmailLogin.login();
     }
