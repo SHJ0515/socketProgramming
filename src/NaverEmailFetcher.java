@@ -24,6 +24,7 @@ public class NaverEmailFetcher {
             // 4. 로그인 요청 (앱 비밀번호 사용)
             String username = "본인 아이디@naver.com";  // 네이버 이메일 주소
             String password = "본인 비밀번호";  // 2차인증 시 앱 비밀번호
+
             writer.write("A001 LOGIN " + username + " " + password + "\r\n");
             writer.flush();
             System.out.println("C: A001 LOGIN " + username + " ********");

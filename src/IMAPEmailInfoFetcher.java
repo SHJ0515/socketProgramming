@@ -135,7 +135,9 @@ public class IMAPEmailInfoFetcher {
 
                 System.out.println(bodyContent);
 
-                // 이메일 본문 인코딩 형식에 따라 디코딩 후 출력
+                /*
+                    본문 디코딩 과정이 해결이 안됨.
+                 */
                 String decodedBody = "";
                 if ("base64".equalsIgnoreCase(encoding)) {
 
