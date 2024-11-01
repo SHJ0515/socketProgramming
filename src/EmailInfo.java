@@ -4,6 +4,7 @@ public class EmailInfo {
     private String date;
     private String body;
 
+    public EmailInfo() {}
     public EmailInfo(String subject, String from, String date, String body) {
         this.subject = subject;
         this.from = from;
