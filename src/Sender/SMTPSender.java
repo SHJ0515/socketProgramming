@@ -137,7 +137,7 @@ public class SMTPSender {
             String content = mailHeaderObj.header + contentObj.result;
             System.out.println(content);
 
-            Personal_Info infoObj = new Personal_Info();
+            /*Personal_Info infoObj = new Personal_Info();
 
             SMTPSender.sendMail(
                     smtpServer, // smtp 서버 설정
@@ -145,7 +145,7 @@ public class SMTPSender {
                     to, // 받는사람 주소 설정
                     content,
                     infoObj.password // sender 메일주소의 비밀번호를 넣으세요
-            );
+            );*/
             System.out.println("==========================");
             System.out.println("메일이 전송되었습니다.");
         } catch(Exception e) {
