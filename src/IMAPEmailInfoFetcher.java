@@ -188,7 +188,7 @@ public class IMAPEmailInfoFetcher {
         return ""; // 필드를 찾지 못한 경우 빈 문자열 반환
     }
 
-    private String decodeMimeEncodedText(String text) {
+    public static String decodeMimeEncodedText(String text) {
         StringBuilder decodedText = new StringBuilder();
 
         /*
@@ -238,7 +238,7 @@ public class IMAPEmailInfoFetcher {
     /*
         Quoted-Printable 디코딩
      */
-    private String decodeQuotedPrintable(String text) {
+    public static String decodeQuotedPrintable(String text) {
         // 줄바꿈과 이어진 `=` 기호 제거
         text = text.replaceAll("=\r?\n", "");
 
@@ -261,12 +261,12 @@ public class IMAPEmailInfoFetcher {
         return decoded.toString();
     }
 
-    private String decodeBase64(String encoded, Charset charset) {
+    public static String decodeBase64(String encoded, Charset charset) {
         byte[] decodedBytes = Base64.getMimeDecoder().decode(encoded);
         return new String(decodedBytes, charset);
     }
 
-    private String getCharset(String contentType) {
+    public static String getCharset(String contentType) {
         Pattern charsetPattern = Pattern.compile("charset=([\\w-]+)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = charsetPattern.matcher(contentType);
         if (matcher.find()) {
