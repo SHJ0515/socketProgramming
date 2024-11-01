@@ -119,35 +119,32 @@ public class SMTPSender {
     public static void main(String args[]) {
         try {
             // RFC 5322 형식의 이메일 콘텐츠 작성
-            String from = "test_sender@naver.com"; // 여기에 보내는 사람 이메일을 넣으세요
-            String to = "test_receiver@naver.com"; // 여기에 받는사람 이메일을 넣으세요
-            String subject = "Meeting Reminder"; // 메일 제목을 입력하세요
-            String date = "Mon, 28 Oct 2024 10:30:00 +0000"; // 메일 보내는 시간을 입력하세요
-            String messageId = "<12345@example.com>"; // 안건드려도 됩니다
+            String from = "wndrhdyd8070@naver.com"; // 여기에 보내는 사람 이메일을 넣으세요
+            String to = "drumchris@naver.com"; // 여기에 받는사람 이메일을 넣으세요
+            String subject = "Hello chanwoo"; // 메일 제목을 입력하세요
+            String smtpServer = "smtp.naver.com";
 
-            String body = "Hello Bob,\r\n"
+            String body = "Hello chanwoo,\r\n"
                     + "\r\n"
-                    + "Just a reminder about the meeting we have scheduled for tomorrow at 3 PM.\r\n"
-                    + "Please let me know if you need any additional information.\r\n"
-                    + "\r\n"
-                    + "Best regards,\r\n"
-                    + "Alice\r\n";
+                    + "I've succeed sending file\r\n"
+                    + "Please check file\r\n";
 
-            // RFC 5322 형식에 맞게 헤더와 본문을 결합
-            String content = "From: " + from + "\r\n"
-                    + "To: " + to + "\r\n"
-                    + "Subject: " + subject + "\r\n"
-                    + "Date: " + date + "\r\n"
-                    + "Message-ID: " + messageId + "\r\n"
-                    + "\r\n"  // 헤더와 본문을 구분하는 빈 줄
-                    + body;
+            // RFC 5322 형식에 맞게 헤더와 본문을 생성
+            // MailHeader mailHeaderObj = new MailHeader(from, to, subject, "text/plain"); // "text/plain" 또는 "multipart/mixed" 로 설정
+            MailHeader mailHeaderObj = new MailHeader(from, to, subject, "multipart/mixed");
+            //MailContent contentObj = new MailContent(body,false);
+            MailContent contentObj = new MailContent(body, false, "/Users/sejunkwon/Hello world.docx");
+            String content = mailHeaderObj.header + contentObj.result;
+            System.out.println(content);
+
+            Personal_Info infoObj = new Personal_Info();
 
             SMTPSender.sendMail(
-                    "smtp.naver.com", // smtp 서버 설정
-                    from, // sender 주소 설정
+                    smtpServer, // smtp 서버 설정
+                    infoObj.from, // sender 주소 설정
                     to, // 받는사람 주소 설정
                     content,
-                    "sender_비밀번호" // sender 메일주소의 비밀번호를 넣으세요
+                    infoObj.password // sender 메일주소의 비밀번호를 넣으세요
             );
             System.out.println("==========================");
             System.out.println("메일이 전송되었습니다.");

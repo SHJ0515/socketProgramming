@@ -1,7 +1,6 @@
 package Sender;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 
 public class SenderGUI {
@@ -23,10 +22,8 @@ public class SenderGUI {
     private JLabel contentLabel = new JLabel();
     private JTextArea contentArea = new JTextArea();
 
-
-
-    GridBagLayout grid = new GridBagLayout();
-    GridBagConstraints gbc = new GridBagConstraints();
+    private GridBagLayout grid = new GridBagLayout();
+    private GridBagConstraints gbc = new GridBagConstraints();
 
     SenderGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 닫기 버튼 누를 시 프로그램 종료 설정

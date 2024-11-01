@@ -1,5 +1,6 @@
 package Sender;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.UUID;
@@ -10,19 +11,17 @@ public class MailHeader {
     public String subject; // 메일 제목을 입력하세요
     public String date; // 메일 보내는 시간을 입력하세요
     public String messageId; // 안건드려도 됩니다
-    private int fileFlag;
 
     // RFC 5322 형식에 맞는 헤더 선언
     String header;
 
-    MailHeader (String from, String to, String subject, int fileFlag) {
+    MailHeader (String from, String to, String subject, String contentType) {
         this.from = from;
         this.to = to;
         this.subject = subject;
-        this.fileFlag = fileFlag;
 
         // 현재 시간을 가져옵니다.
-        LocalDateTime now = LocalDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
 
         // RFC 5322 형식을 위한 DateTimeFormatter를 정의합니다.
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
@@ -45,7 +44,7 @@ public class MailHeader {
                 + "Date: " + this.date + "\r\n"
                 + "Message-ID: " + this.messageId + "\r\n"
                 + "MIME-Version: 1.0" + "\r\n"
-                + "Content-Type: multipart/mixed; boundary=\"boundary\"" + "\r\n"
+                + "Content-Type: "+ contentType +"; boundary=\"boundary\"" + "\r\n"
                 + "\r\n";  // 헤더와 본문을 구분하는 빈 줄
     }
 }
