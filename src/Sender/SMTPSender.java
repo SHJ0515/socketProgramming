@@ -116,18 +116,15 @@ public class SMTPSender {
         socket.close();
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         try {
             // RFC 5322 형식의 이메일 콘텐츠 작성
-            String from = "wndrhdyd8070@naver.com"; // 여기에 보내는 사람 이메일을 넣으세요
-            String to = "drumchris@naver.com"; // 여기에 받는사람 이메일을 넣으세요
-            String subject = "Hello chanwoo"; // 메일 제목을 입력하세요
+            String from = args[0]; // 여기에 보내는 사람 이메일을 넣으세요
+            String to = args[1]; // 여기에 받는사람 이메일을 넣으세요
+            String subject = args[2]; // 메일 제목을 입력하세요
             String smtpServer = "smtp.naver.com";
 
-            String body = "Hello chanwoo,\r\n"
-                    + "\r\n"
-                    + "I've succeed sending file\r\n"
-                    + "Please check file\r\n";
+            String body = args[3] + "\r\n";
 
             // RFC 5322 형식에 맞게 헤더와 본문을 생성
             // MailHeader mailHeaderObj = new MailHeader(from, to, subject, "text/plain"); // "text/plain" 또는 "multipart/mixed" 로 설정
@@ -141,7 +138,7 @@ public class SMTPSender {
 
             SMTPSender.sendMail(
                     smtpServer, // smtp 서버 설정
-                    infoObj.from, // sender 주소 설정
+                    from, // sender 주소 설정
                     to, // 받는사람 주소 설정
                     content,
                     infoObj.password // sender 메일주소의 비밀번호를 넣으세요
