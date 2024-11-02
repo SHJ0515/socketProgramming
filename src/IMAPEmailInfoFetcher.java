@@ -1,3 +1,5 @@
+import util.Decoder;
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
@@ -98,7 +100,7 @@ public class IMAPEmailInfoFetcher {
                 System.out.print(headerResponse);
                 System.out.println("** ==============================================================");
 
-                String decodedHeader = decodeMimeEncodedText(headerResponse.toString());
+                String decodedHeader = Decoder.decodeMimeEncodedText(headerResponse.toString());
                 System.out.println("메일 헤더 정보(디코딩 후):\n" + decodedHeader);
                 System.out.println("==============================\n");
 
@@ -126,14 +128,14 @@ public class IMAPEmailInfoFetcher {
                 System.out.println("========================================================");
 
                 System.out.println("** 메일 헤더 정보(디코딩 후)============================================");
-                System.out.println("From: " + decodeMimeEncodedText(from));
-                System.out.println("Date: " + decodeMimeEncodedText(date));
-                System.out.println("Subject: " + decodeMimeEncodedText(subject));
+                System.out.println("From: " + Decoder.decodeMimeEncodedText(from));
+                System.out.println("Date: " + Decoder.decodeMimeEncodedText(date));
+                System.out.println("Subject: " + Decoder.decodeMimeEncodedText(subject));
                 System.out.println("========================================================");
 
-                emailInfo.setFrom(decodeMimeEncodedText(from));
-                emailInfo.setDate(decodeMimeEncodedText(date));
-                emailInfo.setSubject(decodeMimeEncodedText(subject));
+                emailInfo.setFrom(Decoder.decodeMimeEncodedText(from));
+                emailInfo.setDate(Decoder.decodeMimeEncodedText(date));
+                emailInfo.setSubject(Decoder.decodeMimeEncodedText(subject));
 
                 /*
                     이메일 본문 가져오기
@@ -188,85 +190,12 @@ public class IMAPEmailInfoFetcher {
         return ""; // 필드를 찾지 못한 경우 빈 문자열 반환
     }
 
-    public static String decodeMimeEncodedText(String text) {
-        StringBuilder decodedText = new StringBuilder();
-
-        /*
-            Base64 또는 Quoted-Printable로 인코딩된 텍스트를 찾기 위해 패턴 사용
-            =?charset?encodingType?encodedText?= 형식
-         */
-        Pattern pattern = Pattern.compile("=\\?(.*?)\\?([BQ])\\?(.+?)\\?=", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(text);
-        int lastEnd = 0;
-
-        while (matcher.find()) {
-            decodedText.append(text, lastEnd, matcher.start());
-
-            /*
-                매칭된 그룹에서 charset, 인코딩 타입, 인코딩된 텍스트 추출
-             */
-            String charsetName = matcher.group(1);
-            String encodingType = matcher.group(2);
-            String encodedText = matcher.group(3);
-
-            Charset charset = Charset.forName(charsetName);
-            byte[] decodedBytes;
-
-            try {
-                // 인코딩 타입이 'B"인 경우 Base64로 디코딩
-                if (encodingType.equalsIgnoreCase("B")) {
-                    decodedBytes = Base64.getDecoder().decode(encodedText);
-                } else {
-                    // "Q"인 경우 Quoted-Printable로 디코딩
-                    // decodeQuotedPrintable 메소드에서 charset을 사용하여 디코딩
-                    decodedBytes = decodeQuotedPrintable(encodedText).getBytes(charset);
-                }
-                // 디코딩된 바이트 배열을 charset으로 변환하여 문자열을 추가
-                decodedText.append(new String(decodedBytes, charset));
-            } catch (Exception e) {
-                // 디코딩 실패 시 원본 텍스트 그대로 추가
-                decodedText.append(matcher.group(0));
-            }
-            // 마지막 매칭 위치를 현재 매칭 끝 위치로 업데이트
-            lastEnd = matcher.end();
-        }
-        // 마지막 남은 텍스트 추가
-        decodedText.append(text.substring(lastEnd));
-        return decodedText.toString();
-    }
-
-    /*
-        Quoted-Printable 디코딩
-     */
-    public static String decodeQuotedPrintable(String text) {
-        // 줄바꿈과 이어진 `=` 기호 제거
-        text = text.replaceAll("=\r?\n", "");
-
-        StringBuilder decoded = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            if (c == '=' && i + 2 < text.length()) {
-                String hex = text.substring(i + 1, i + 3);
-                try {
-                    int value = Integer.parseInt(hex, 16);
-                    decoded.append((char) value);
-                    i += 2;
-                } catch (NumberFormatException e) {
-                    decoded.append(c); // 실패 시 '=' 그대로 추가
-                }
-            } else {
-                decoded.append(c);
-            }
-        }
-        return decoded.toString();
-    }
-
-    public static String decodeBase64(String encoded, Charset charset) {
+    private String decodeBase64(String encoded, Charset charset) {
         byte[] decodedBytes = Base64.getMimeDecoder().decode(encoded);
         return new String(decodedBytes, charset);
     }
 
-    public static String getCharset(String contentType) {
+    private String getCharset(String contentType) {
         Pattern charsetPattern = Pattern.compile("charset=([\\w-]+)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = charsetPattern.matcher(contentType);
         if (matcher.find()) {
