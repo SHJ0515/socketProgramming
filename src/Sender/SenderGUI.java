@@ -81,9 +81,9 @@ public class SenderGUI {
         senderPanel.add(subjectField);
 
         // sendButton 배치
-        subjectLabel_right.setText("subject_test");
-        makeLayout(subjectLabel_right, 2, 2, 0.2, 0.1);
-        senderPanel.add(subjectLabel_right);
+//        subjectLabel_right.setText("subject_test");
+//        makeLayout(subjectLabel_right, 2, 2, 0.2, 0.1);
+//        senderPanel.add(subjectLabel_right);
 
         /////////////////////////////////////////////////////////////////////////
 
@@ -97,11 +97,11 @@ public class SenderGUI {
         makeLayout(filePathField,1,3,0.9,0.1);
         senderPanel.add(filePathField);
 
-        // sendButton 배치
-        fileButton.setText("add file");
-        makeLayout(fileButton, 2, 3, 0.2, 0.1);
-        senderPanel.add(fileButton);
-        fileButton.addActionListener(new SenderEventHandler(this, this.smtpSender));
+        // fileButton 배치
+//        fileButton.setText("add file");
+//        makeLayout(fileButton, 2, 3, 0.2, 0.1);
+//        senderPanel.add(fileButton);
+//        fileButton.addActionListener(new SenderEventHandler(this, this.smtpSender));
         ////////////////////////////////////////////////
 
 

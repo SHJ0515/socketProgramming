@@ -7,17 +7,18 @@ import java.io.*;
 public class MailContent {
     String result;
 
-    MailContent(String contentText, Boolean multiBoolean, String filePath) {
-        if(multiBoolean) {
-            result = new multiPartTextMailContent(contentText).body;
-        } else {
-            try {
-                result = new multiPartfileMailContent(contentText, filePath).body;
-            } catch (Exception e) {
-                System.out.println("파일을 포함한 Mail Content가 만들어지지 않았습니다.");
-                System.out.println(e.toString());
-            };
-        }
+    MailContent(String contentText) { // 파일이 없는 경우
+        result = contentText;
+    }
+
+    MailContent(String contentText, String filePath) { // 파일이 있는 경우
+        try {
+            result = new multiPartfileMailContent(contentText, filePath).body;
+            result = result + "--boundary--" + "\r\n";
+        } catch (Exception e) {
+            System.out.println("파일을 포함한 Mail Content가 만들어지지 않았습니다.");
+            System.out.println(e.toString());
+        };
     }
 }
 
@@ -48,7 +49,6 @@ class multiPartfileMailContent { // 메일이 텍스트와 첨부파일 1개와 
                 + "Content-Transfer-Encoding: base64" + "\r\n"
                 + "\r\n"
                 + encodedFile + "\r\n"
-                + "\r\n"
-                + "--boundary--" + "\r\n";
+                + "\r\n";
     }
 }

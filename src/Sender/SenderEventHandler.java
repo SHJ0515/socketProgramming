@@ -25,19 +25,22 @@ public class SenderEventHandler implements ActionListener {
             this.receiver = this.app.receiverField.getText();
             this.subject = this.app.subjectField.getText();
             this.content = this.app.contentArea.getText();
+            this.filePath = this.app.filePathField.getText();
             System.out.println("From: " + this.from);
             System.out.println("Receiver: " + this.receiver);
             System.out.println("Subject: " + this.subject);
             System.out.println("Content: " + this.content);
-            String[] args = {this.from, this.receiver, this.subject, this.content};
+            System.out.println("FilePath: " + this.filePath);
+            String[] args = {this.from, this.receiver, this.subject, this.content, this.filePath};
             try {
-                sendLogic.main(args);
+                if(sendLogic.main(args)) {
+                    app.SorF.setText("Success!");
+                } else {
+                    app.SorF.setText("Fail!");
+                }
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
-        } else if(e.getSource() == this.app.fileButton) { // fileButotn을 누른경우 처리한다.
-            this.filePath = this.app.filePathField.getText();
-            System.out.println("filePath: " + this.filePath);
         }
     }
 
