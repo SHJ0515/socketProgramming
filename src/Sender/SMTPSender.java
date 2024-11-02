@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.Base64;
 
 public class SMTPSender {
+    static Boolean sendSuccess = false;
     public static void sendMail(
             String smtpServer, String sender, String recipient, String content, String password)
             throws Exception {
@@ -111,29 +112,34 @@ public class SMTPSender {
         System.out.println("접속 종료합니다.");
         outToServer.println("quit");
 
+
         outToServer.close();
         inFromServer.close();
         socket.close();
     }
 
-    public static void main(String args[]) {
+    public static Boolean main(String[] args) {
         try {
             // RFC 5322 형식의 이메일 콘텐츠 작성
-            String from = "wndrhdyd8070@naver.com"; // 여기에 보내는 사람 이메일을 넣으세요
-            String to = "drumchris@naver.com"; // 여기에 받는사람 이메일을 넣으세요
-            String subject = "Hello chanwoo"; // 메일 제목을 입력하세요
+            String from = args[0]; // 여기에 보내는 사람 이메일을 넣으세요
+            String to = args[1]; // 여기에 받는사람 이메일을 넣으세요
+            String subject = args[2]; // 메일 제목을 입력하세요
+            String body = args[3] + "\r\n";
+            String filePath = args[4];
             String smtpServer = "smtp.naver.com";
 
-            String body = "Hello chanwoo,\r\n"
-                    + "\r\n"
-                    + "I've succeed sending file\r\n"
-                    + "Please check file\r\n";
+            MailHeader mailHeaderObj;
+            MailContent contentObj;
 
             // RFC 5322 형식에 맞게 헤더와 본문을 생성
-            // MailHeader mailHeaderObj = new MailHeader(from, to, subject, "text/plain"); // "text/plain" 또는 "multipart/mixed" 로 설정
-            MailHeader mailHeaderObj = new MailHeader(from, to, subject, "multipart/mixed");
-            //MailContent contentObj = new MailContent(body,false);
-            MailContent contentObj = new MailContent(body, false, "/Users/sejunkwon/Hello world.docx");
+            if(filePath.isEmpty()) { // 파일이 없으면 Plain text로 메일 헤더와 콘텐트 구성
+                mailHeaderObj = new MailHeader(from, to, subject, "text/plain");
+                contentObj = new MailContent(body);
+            } else { // 파일이 있으면 mixed로 구성한다
+                mailHeaderObj = new MailHeader(from, to, subject, "multipart/mixed");
+                contentObj = new MailContent(body, filePath);
+            }
+
             String content = mailHeaderObj.header + contentObj.result;
             System.out.println(content);
 
@@ -141,17 +147,19 @@ public class SMTPSender {
 
             SMTPSender.sendMail(
                     smtpServer, // smtp 서버 설정
-                    infoObj.from, // sender 주소 설정
+                    from, // sender 주소 설정
                     to, // 받는사람 주소 설정
                     content,
                     infoObj.password // sender 메일주소의 비밀번호를 넣으세요
             );
             System.out.println("==========================");
             System.out.println("메일이 전송되었습니다.");
+            return true;
         } catch(Exception e) {
             System.out.println("==========================");
             System.out.println("메일이 발송되지 않았습니다.");
             System.out.println(e.toString());
+            return false;
         }
     }
 }

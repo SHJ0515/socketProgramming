@@ -4,26 +4,31 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SenderGUI {
-    private JFrame frame = new JFrame();
-    private JPanel senderPanel = new JPanel();
+    SMTPSender smtpSender = new SMTPSender();
+    public JFrame frame = new JFrame();
+    public JPanel senderPanel = new JPanel();
 
-    private JLabel senderLabel = new JLabel(); // 메일 보내는 사람 담을 GUI
-    private JTextField senderField = new JTextField();
-    private JButton sendButton = new JButton();
+    public JLabel senderLabel = new JLabel(); // 메일 보내는 사람 담을 GUI
+    public JTextField senderField = new JTextField();
+    public JButton sendButton = new JButton();
 
-    private JLabel receiverLabel = new JLabel(); // 메일 받는 사람 담을 GUI
-    private JTextField receiverField = new JTextField();
-    private JLabel SorF = new JLabel();
+    public JLabel receiverLabel = new JLabel(); // 메일 받는 사람 담을 GUI
+    public JTextField receiverField = new JTextField();
+    public JLabel SorF = new JLabel();
 
-    private JLabel subjectLabel = new JLabel(); // 제목 입력 GUI
-    private JTextField subjectField = new JTextField();
-    private JButton fileButton = new JButton();
+    public JLabel subjectLabel = new JLabel(); // 제목 입력 GUI
+    public JTextField subjectField = new JTextField();
+    public JLabel subjectLabel_right = new JLabel();
 
-    private JLabel contentLabel = new JLabel();
-    private JTextArea contentArea = new JTextArea();
+    public JLabel fileLabel = new JLabel(); // 파일 경로 입력 영역
+    public JTextField filePathField = new JTextField();
+    public JButton fileButton = new JButton();
 
-    private GridBagLayout grid = new GridBagLayout();
-    private GridBagConstraints gbc = new GridBagConstraints();
+    public JLabel contentLabel = new JLabel(); // 메일 본문 영역
+    public JTextArea contentArea = new JTextArea();
+
+    public GridBagLayout grid = new GridBagLayout();
+    public GridBagConstraints gbc = new GridBagConstraints();
 
     SenderGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 닫기 버튼 누를 시 프로그램 종료 설정
@@ -46,6 +51,7 @@ public class SenderGUI {
         sendButton.setText("Send");
         makeLayout(sendButton, 2, 0, 0.2, 0.1);
         senderPanel.add(sendButton, gbc);
+        sendButton.addActionListener(new SenderEventHandler(this, this.smtpSender));
         //////////////////////////////////////////////////////////////////////
 
         //////////////////////////////////////////////////// Receiver 행 컴포넌트들
@@ -75,19 +81,38 @@ public class SenderGUI {
         senderPanel.add(subjectField);
 
         // sendButton 배치
-        fileButton.setText("add file");
-        makeLayout(fileButton, 2, 2, 0.2, 0.1);
-        senderPanel.add(fileButton);
+//        subjectLabel_right.setText("subject_test");
+//        makeLayout(subjectLabel_right, 2, 2, 0.2, 0.1);
+//        senderPanel.add(subjectLabel_right);
+
         /////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////////////////////////////// filePath행 컴포넌트들
+        // filePath Label 배치
+        fileLabel.setText("filePath : ");
+        makeLayout(fileLabel,0,3,0.2,0.1);
+        senderPanel.add(fileLabel);
+
+        // filePath 입력하는 텍스트필드 배치
+        makeLayout(filePathField,1,3,0.9,0.1);
+        senderPanel.add(filePathField);
+
+        // fileButton 배치
+//        fileButton.setText("add file");
+//        makeLayout(fileButton, 2, 3, 0.2, 0.1);
+//        senderPanel.add(fileButton);
+//        fileButton.addActionListener(new SenderEventHandler(this, this.smtpSender));
+        ////////////////////////////////////////////////
+
 
         ////////////////////////////////////////////////////contentarea 행 컴포넌트들
         // contentLabel 배치
         contentLabel.setText("Content : ");
-        makeLayout(contentLabel, 0, 3, 0.2, 0.1);
+        makeLayout(contentLabel, 0, 4, 0.2, 0.1);
         senderPanel.add(contentLabel);
 
         // contentarea 배치
-        makeLayout(contentArea, 1, 3, 0.8, 0.8);
+        makeLayout(contentArea, 1, 4, 0.9, 1.0);
         contentArea.setPreferredSize(new Dimension(400 ,300));
         senderPanel.add(contentArea);
         //////////////////////////////////////////////////////////////////////////
