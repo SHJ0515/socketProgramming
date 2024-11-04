@@ -1,3 +1,5 @@
+import util.Decoder;
+
 import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -17,6 +19,8 @@ public class ShowNaverEmailTitle {
     private SSLSocket socket;             // 소켓 필드로 선언
     private BufferedReader reader;        // BufferedReader 필드로 선언
     private BufferedWriter writer;        // BufferedWriter 필드로 선언
+
+    private int tagCounter = 4;
 
     public ShowNaverEmailTitle() {}
     public ShowNaverEmailTitle(
@@ -43,29 +47,62 @@ public class ShowNaverEmailTitle {
         this.writer = showNaverEmailList.getWriter();
     }
 
+    //화면에 메일 id 와 메일 제목, 발신자 프린트
     public void displayAllEmailTitles() {
         for(String emailId : emailIds) {
             System.out.println("메일 id : " + emailId);
             String details = fetchEmailDetails(emailId);
-
-            if(details != null) {
-                String decodedDetails = IMAPEmailInfoFetcher.decodeMimeEncodedText(details);
-                System.out.println("메일 세부 정보 : " + decodedDetails);
-            }
-            System.out.println(DIVIDER);
+            printDetails(details);
         }
 
     }
 
+    //화면에 출력
+    public void printDetails(String details) {
+        try {
+            if(details != null) {
+                String decodedDetails = Decoder.decodeMimeEncodedText(details);
+                System.out.println("메일 세부 정보 : " + decodedDetails);
+            }
+            System.out.println(DIVIDER);
+        } catch (IllegalArgumentException e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
     public String fetchEmailDetails(String emailId) {
         try {
-            // FETCH 명령어로 제목과 발신자 요청
-            writer.write("A004 FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])\r\n");
+            sendFetchCommand(emailId);  // FETCH 명령어로 제목과 발신자 요청
+            return readServerResponse();    //서버로부터 응답을 읽고 반환
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //서버에 FETCH 명령어 전송
+    private void sendFetchCommand(String emailId) {
+        String tag = generateTag();
+        try {
+            writer.write(tag + " FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])\r\n");
             writer.flush();
             System.out.println("C: A004 FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private String generateTag() {
+        return "A" + String.format("%03d", tagCounter++);
+    }
+
+    //서버로부터 응답을 읽고 반환
+    private String readServerResponse() {
+        StringBuilder emailDetails = new StringBuilder();
+        try {
             String line;
-            StringBuilder emailDetails = new StringBuilder();
             while ((line = reader.readLine()) != null) {
                 System.out.println("S: " + line);
                 emailDetails.append(line).append("\n");
@@ -73,14 +110,9 @@ public class ShowNaverEmailTitle {
                 // 응답 완료 조건 확인
                 if (line.startsWith("A004 OK")) break;
             }
-            return emailDetails.toString();  // 제목과 발신자 정보 반환
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return emailDetails.toString();
     }
-
-
-
 }
