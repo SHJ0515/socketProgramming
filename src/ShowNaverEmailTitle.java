@@ -20,6 +20,8 @@ public class ShowNaverEmailTitle {
     private BufferedReader reader;        // BufferedReader 필드로 선언
     private BufferedWriter writer;        // BufferedWriter 필드로 선언
 
+    private int tagCounter = 4;
+
     public ShowNaverEmailTitle() {}
     public ShowNaverEmailTitle(
             String id, String password, String flag, String boxType, String[] emailIds,
@@ -82,13 +84,18 @@ public class ShowNaverEmailTitle {
 
     //서버에 FETCH 명령어 전송
     private void sendFetchCommand(String emailId) {
+        String tag = generateTag();
         try {
-            writer.write("A004 FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])\r\n");
+            writer.write(tag + " FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])\r\n");
             writer.flush();
             System.out.println("C: A004 FETCH " + emailId + " (BODY[HEADER.FIELDS (SUBJECT FROM)])");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String generateTag() {
+        return "A" + String.format("%03d", tagCounter++);
     }
 
     //서버로부터 응답을 읽고 반환
